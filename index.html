@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inventario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 1px solid #e0e6ed;
+            overflow-x: auto;
+        }
+
+        .section h2 {
+            color: #34495e;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .form-group input, .form-group select {
+            padding: 8px 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #2980b9, #1f618d);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            margin: 20px 0;
+        }
+
+        .btn-export:hover {
+            background: linear-gradient(135deg, #d35400, #ba4a00);
+        }
+
+        .btn-next-day {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-next-day:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+        }
+
+        table {
+            width: 100%;
+            min-width: 800px;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #e8f4f8;
+            transform: scale(1.01);
+            transition: all 0.2s;
+        }
+
+        .alert {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            animation: pulse 1.5s infinite;
+        }
+
+        .ok {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .input-small {
+            width: 80px;
+        }
+
+        .input-medium {
+            width: 120px;
+        }
+
+        .current-date {
+            text-align: center;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+                margin-bottom: 20px;
+            }
+
+            .section {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+
+            .section h2 {
+                font-size: 1.3em;
+                margin-bottom: 15px;
+            }
+
+            .form-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .form-group input {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+
+            .input-medium {
+                width: 100%;
+            }
+
+            table {
+                min-width: 600px;
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px 4px;
+                font-size: 11px;
+            }
+
+            .input-small {
+                width: 60px;
+                padding: 4px 6px;
+                font-size: 11px;
+            }
+
+            .current-date {
+                font-size: 1em;
+                padding: 12px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 1.5em;
+            }
+
+            .btn-export, .btn-next-day {
+                margin: 10px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 5px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .section {
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+
+            .section h2 {
+                font-size: 1.1em;
+            }
+
+            table {
+                min-width: 500px;
+                font-size: 10px;
+            }
+
+            th, td {
+                padding: 6px 2px;
+                font-size: 10px;
+            }
+
+            .input-small {
+                width: 50px;
+                padding: 2px 4px;
+                font-size: 10px;
+            }
+
+            .current-date {
+                font-size: 0.9em;
+                padding: 10px;
+            }
+
+            .stat-value {
+                font-size: 1.2em;
+            }
+
+            .alert, .ok {
+                padding: 4px 8px;
+                font-size: 9px;
+            }
+        }
+
+        /* Coffee section table responsive fix */
+        @media (max-width: 768px) {
+            #coffeeTable table {
+                min-width: 100%;
+            }
+
+            #coffeeTable th, #coffeeTable td {
+                padding: 8px 4px;
+                font-size: 11px;
+            }
+
+            #coffeeTable input {
+                width: 100%;
+                min-width: 50px;
+                padding: 4px;
+                font-size: 11px;
+            }
+        }
+
+        /* Action buttons container responsive */
+        @media (max-width: 768px) {
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .btn-export, .btn-next-day {
+                width: 100%;
+                max-width: 300px;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏪 Sistema de Inventario</h1>
+        
+        <div class="current-date" id="currentDate"></div>
+
+        <!-- Sección de Productos -->
+        <div class="section">
+            <h2>📦 Productos</h2>
+            <div class="form-group">
+                <input type="text" id="newProduct" placeholder="Nombre del producto" class="input-medium">
+                <button class="btn" onclick="addProduct()">Agregar Producto</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Existente</th>
+                        <th>Producción</th>
+                        <th>Disponible</th>
+                        <th>Vendido</th>
+                        <th>Físico</th>
+                        <th>Estado</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody id="productTable">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Sección de Bebidas Gaseosas -->
+        <div class="section">
+            <h2>🥤 Bebidas Gaseosas</h2>
+            <div class="form-group">
+                <input type="text" id="newBeverage" placeholder="Nombre de la bebida" class="input-medium">
+                <button class="btn" onclick="addBeverage()">Agregar Bebida</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bebida</th>
+                        <th>Cantidad Inicial</th>
+                        <th>Vendido</th>
+                        <th>Restante</th>
+                        <th>Estado</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody id="beverageTable">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Sección de Café -->
+        <div class="section">
+            <h2>☕ Control de Café (Kilogramos)</h2>
+            <table id="coffeeTable">
+                <thead>
+                    <tr>
+                        <th>Peso traído de MK1 (kg)</th>
+                        <th>Total Vendido (g)</th>
+                        <th>Debe Quedar (kg)</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="number" id="coffeeFromMK1" class="input-small" placeholder="0" step="0.1" onchange="calculateCoffee()"></td>
+                        <td><input type="number" id="coffeeSold" class="input-small" placeholder="0" step="10" onchange="calculateCoffee()"></td>
+                        <td id="coffeeRemaining"><strong>0.0 kg</strong></td>
+                        <td><input type="text" id="coffeeObs" placeholder="Observaciones"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalProducts">0</div>
+                <div>Total Productos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalBeverages">0</div>
+                <div>Total Bebidas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalCoffee">0kg</div>
+                <div>Café Vendido</div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="action-buttons" style="text-align: center; margin-top: 30px;">
+            <button class="btn btn-export" onclick="exportToPDF()">📄 Exportar a PDF</button>
+            <button class="btn btn-next-day" onclick="nextDay()">🗓️ Siguiente Día</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        // Productos predeterminados
+        let products = [
+            { name: "Pan pequeño", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Pan 800", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Pan mediano", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Croassant", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Dedo de queso ", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Coco miel", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Pan grande", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Hawayano", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Galleta clasica", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Galleta avena", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Pan de bono", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Pan yuca", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Pan arroz", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Almojabana", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Liberal rojo", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Bomba coco", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Hojaldra", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Pastel", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Calao", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Baguette", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Mantecada", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Brawny", existing: 0, production: 0, sold: 0, observations: "" },
+            { name: "Corbatines", existing: 0, production: 0, sold: 0, observations: "" },
+        ];
+
+        let beverages = [
+            { name: "Colombiana 400/500", initial: 0, sold: 0, observations: "" },
+            { name: "Pony 1.5", initial: 0, sold: 0, observations: "" },
+            { name: "Pony 330", initial: 0, sold: 0, observations: "" },
+            { name: "Coca Cola 350", initial: 0, sold: 0, observations: "" },
+            { name: "Coca Cola 1.5", initial: 0, sold: 0, observations: "" },
+            { name: "Coca Cola 3L", initial: 0, sold: 0, observations: "" },
+            { name: "Quatro 350", initial: 0, sold: 0, observations: "" },
+            { name: "Quatro 3L", initial: 0, sold: 0, observations: "" },
+            { name: "Quatro 1.5", initial: 0, sold: 0, observations: "" },
+            { name: "Soda 350", initial: 0, sold: 0, observations: "" },
+            { name: "Speed max", initial: 0, sold: 0, observations: "" },
+            { name: "Agua 600", initial: 0, sold: 0, observations: "" },
+            { name: "Aguila", initial: 0, sold: 0, observations: "" },
+            { name: "Costeña", initial: 0, sold: 0, observations: "" },
+            { name: "Colombiana 1.5", initial: 0, sold: 0, observations: "" },
+            { name: "Jugo en caja", initial: 0, sold: 0, observations: "" },
+            { name: "Ginger", initial: 0, sold: 0, observations: "" },
+            { name: "Manzana 1.5", initial: 0, sold: 0, observations: "" },
+            { name: "Pulpas", initial: 0, sold: 0, observations: "" },
+        ];
+
+        let coffeeData = { fromMK1: 0, sold: 0, observations: "" };
+
+        // Mostrar fecha actual
+        function updateDate() {
+            const today = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('currentDate').textContent = 
+                `📅 ${today.toLocaleDateString('es-ES', options)}`;
+        }
+
+        // Agregar nuevo producto
+        function addProduct() {
+            const name = document.getElementById('newProduct').value.trim();
+            if (name && !products.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+                products.push({ name, existing: 0, production: 0, sold: 0, observations: "" });
+                document.getElementById('newProduct').value = '';
+                renderProductTable();
+                updateStats();
+            }
+        }
+
+        // Agregar nueva bebida
+        function addBeverage() {
+            const name = document.getElementById('newBeverage').value.trim();
+            if (name && !beverages.find(b => b.name.toLowerCase() === name.toLowerCase())) {
+                beverages.push({ name, initial: 0, sold: 0, observations: "" });
+                document.getElementById('newBeverage').value = '';
+                renderBeverageTable();
+                updateStats();
+            }
+        }
+
+        // Renderizar tabla de productos
+        function renderProductTable() {
+            const tbody = document.getElementById('productTable');
+            tbody.innerHTML = '';
+            
+            products.forEach((product, index) => {
+                const available = product.existing + product.production;
+                const physical = available - product.sold;
+                const status = physical >= 0 ? 
+                    '<span class="ok">✓ OK</span>' : 
+                    '<span class="alert">⚠️ DESCUADRE</span>';
+                
+                const row = `
+                    <tr>
+                        <td><strong>${product.name}</strong></td>
+                        <td><input type="number" value="${product.existing}" class="input-small" 
+                            onchange="updateProduct(${index}, 'existing', this.value)"></td>
+                        <td><input type="number" value="${product.production}" class="input-small" 
+                            onchange="updateProduct(${index}, 'production', this.value)"></td>
+                        <td><strong>${available}</strong></td>
+                        <td><input type="number" value="${product.sold}" class="input-small" 
+                            onchange="updateProduct(${index}, 'sold', this.value)"></td>
+                        <td><strong>${physical}</strong></td>
+                        <td>${status}</td>
+                        <td><input type="text" value="${product.observations}" 
+                            onchange="updateProduct(${index}, 'observations', this.value)"
+                            placeholder="Observaciones"></td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Renderizar tabla de bebidas
+        function renderBeverageTable() {
+            const tbody = document.getElementById('beverageTable');
+            tbody.innerHTML = '';
+            
+            beverages.forEach((beverage, index) => {
+                const remaining = beverage.initial - beverage.sold;
+                const status = remaining >= 0 ? 
+                    '<span class="ok">✓ OK</span>' : 
+                    '<span class="alert">⚠️ DESCUADRE</span>';
+                
+                const row = `
+                    <tr>
+                        <td><strong>${beverage.name}</strong></td>
+                        <td><input type="number" value="${beverage.initial}" class="input-small" 
+                            onchange="updateBeverage(${index}, 'initial', this.value)"></td>
+                        <td><input type="number" value="${beverage.sold}" class="input-small" 
+                            onchange="updateBeverage(${index}, 'sold', this.value)"></td>
+                        <td><strong>${remaining}</strong></td>
+                        <td>${status}</td>
+                        <td><input type="text" value="${beverage.observations}" 
+                            onchange="updateBeverage(${index}, 'observations', this.value)"
+                            placeholder="Observaciones"></td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Actualizar producto
+        function updateProduct(index, field, value) {
+            products[index][field] = field === 'observations' ? value : parseFloat(value) || 0;
+            renderProductTable();
+            updateStats();
+        }
+
+        // Actualizar bebida
+        function updateBeverage(index, field, value) {
+            beverages[index][field] = field === 'observations' ? value : parseFloat(value) || 0;
+            renderBeverageTable();
+            updateStats();
+        }
+
+        // Calcular café
+          function calculateCoffee() {
+            const fromMK1 = parseFloat(document.getElementById('coffeeFromMK1').value) || 0; // en kg
+            const soldInGrams = parseFloat(document.getElementById('coffeeSold').value) || 0; // en g
+            const soldInKg = soldInGrams / 1000; // convertir a kg
+            const remaining = fromMK1 - soldInKg;
+    
+            coffeeData.fromMK1 = fromMK1;
+            coffeeData.sold = soldInGrams; // guardamos en gramos para mostrar en estadísticas y PDF
+    
+            document.getElementById('coffeeRemaining').innerHTML = `<strong>${remaining.toFixed(2)} kg</strong>`;
+            updateStats();
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            document.getElementById('totalProducts').textContent = products.length;
+            document.getElementById('totalBeverages').textContent = beverages.length;
+            document.getElementById('totalCoffee').textContent = `${coffeeData.sold}g`;
+        }
+
+        // Clase para generar PDF estructurado
+        class PDFGenerator {
+            constructor() {
+                this.doc = new jsPDF('p', 'mm', 'a4');
+                this.yPosition = 20;
+                this.pageHeight = 280;
+                this.margin = 14;
+                this.today = new Date();
+                this.colors = {
+                    primary: [52, 73, 94],
+                    secondary: [41, 128, 185],
+                    success: [39, 174, 96],
+                    danger: [231, 76, 60],
+                    warning: [243, 156, 18],
+                    light: [248, 249, 250],
+                    dark: [44, 62, 80],
+                    gray: [150, 150, 150]
+                };
+            }
+
+            // Verificar si necesita nueva página
+            checkNewPage(requiredSpace = 30) {
+                if (this.yPosition + requiredSpace > this.pageHeight) {
+                    this.doc.addPage();
+                    this.yPosition = 20;
+                    return true;
+                }
+                return false;
+            }
+
+            // Encabezado principal del documento
+            addHeader() {
+                // Fondo decorativo
+                this.doc.setFillColor(...this.colors.primary);
+                this.doc.rect(0, 0, 210, 45, 'F');
+
+                // Logo o icono (simulado con texto)
+                this.doc.setFontSize(24);
+                this.doc.setTextColor(255, 255, 255);
+               
+
+                // Título principal
+                this.doc.setFontSize(22);
+                this.doc.setFont('helvetica', 'bold');
+                this.doc.text('REPORTE DE INVENTARIO', 105, 25, { align: 'center' });
+
+                // Fecha y hora
+                const dateString = this.today.toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                this.doc.setFontSize(11);
+                this.doc.setFont('helvetica', 'normal');
+                this.doc.text(dateString, 105, 32, { align: 'center' });
+                this.doc.text(`Generado: ${this.today.toLocaleTimeString('es-ES')}`, 105, 38, { align: 'center' });
+
+                this.yPosition = 55;
+            }
+
+            // Resumen ejecutivo
+            addExecutiveSummary() {
+                this.doc.setFillColor(...this.colors.light);
+                this.doc.rect(this.margin, this.yPosition, 182, 35, 'F');
+                this.doc.setDrawColor(...this.colors.secondary);
+                this.doc.rect(this.margin, this.yPosition, 182, 35, 'S');
+
+                this.yPosition += 8;
+                this.doc.setFontSize(14);
+                this.doc.setFont('helvetica', 'bold');
+                this.doc.setTextColor(...this.colors.dark);
+                this.doc.text('RESUMEN EJECUTIVO', this.margin + 5, this.yPosition);
+
+                this.yPosition += 8;
+                this.doc.setFontSize(10);
+                this.doc.setFont('helvetica', 'normal');
+
+                const totalProductsWithMovement = products.filter(p => p.existing > 0 || p.production > 0 || p.sold > 0).length;
+                const totalBeveragesWithMovement = beverages.filter(b => b.initial > 0 || b.sold > 0).length;
+                const totalProductionValue = products.reduce((sum, p) => sum + p.production, 0);
+                const totalSalesValue = products.reduce((sum, p) => sum + p.sold, 0) + beverages.reduce((sum, b) => sum + b.sold, 0);
+
+                const summaryText = [
+                    `• Productos activos: ${totalProductsWithMovement} de ${products.length}`,
+                    `• Bebidas activas: ${totalBeveragesWithMovement} de ${beverages.length}`,
+                    `• Producción total: ${totalProductionValue} unidades`,
+                    `• Ventas totales: ${totalSalesValue} unidades`,
+                    `• Café vendido: ${coffeeData.sold} kg`
+                ];
+
+                summaryText.forEach((text, index) => {
+                    this.doc.text(text, this.margin + 5, this.yPosition + (index * 4));
+                });
+
+                this.yPosition += 30;
+            }
+
+            // Título de sección con estilo
+            addSectionTitle(title, icon) {
+                this.checkNewPage(15);
+                
+                this.doc.setFillColor(...this.colors.secondary);
+                this.doc.rect(this.margin, this.yPosition, 182, 10, 'F');
+                
+                this.doc.setFontSize(14);
+                this.doc.setFont('helvetica', 'bold');
+                this.doc.setTextColor(255, 255, 255);
+                this.doc.text(`${icon} ${title}`, this.margin + 3, this.yPosition + 7);
+                
+                this.yPosition += 15;
+            }
+
+            // Tabla de productos con mejor formato
+            addProductsTable() {
+                this.addSectionTitle('PRODUCTOS', '');
+                
+                const productData = products.map(p => {
+                    const available = p.existing + p.production;
+                    const physical = available - p.sold;
+                    const status = physical >= 0 ? 'OK' : 'DESCUADRE';
+                    return [
+                        p.name,
+                        p.existing.toString(),
+                        p.production.toString(),
+                        available.toString(),
+                        p.sold.toString(),
+                        physical.toString(),
+                        status,
+                        this.truncateText(p.observations || '-', 20)
+                    ];
+                });
+
+                // Filtrar productos con movimiento para la primera tabla
+                const activeProducts = productData.filter(p => 
+                    parseInt(p[1]) > 0 || parseInt(p[2]) > 0 || parseInt(p[4]) > 0
+                );
+
+                if (activeProducts.length > 0) {
+                    this.doc.autoTable({
+                        head: [['Producto', 'Exist.', 'Prod.', 'Disp.', 'Vend.', 'Fís.', 'Estado', 'Observaciones']],
+                        body: activeProducts,
+                        startY: this.yPosition,
+                        styles: {
+                            fontSize: 8,
+                            cellPadding: 3,
+                            halign: 'center',
+                            valign: 'middle',
+                            lineColor: [200, 200, 200],
+                            lineWidth: 0.1
+                        },
+                        headStyles: {
+                            fillColor: this.colors.primary,
+                            textColor: 255,
+                            fontStyle: 'bold',
+                            fontSize: 9
+                        },
+                        columnStyles: {
+                            0: { halign: 'left', cellWidth: 35 },
+                            1: { cellWidth: 12 },
+                            2: { cellWidth: 12 },
+                            3: { cellWidth: 12 },
+                            4: { cellWidth: 12 },
+                            5: { cellWidth: 12 },
+                            6: { cellWidth: 18 },
+                            7: { halign: 'left', cellWidth: 35 }
+                        },
+                        alternateRowStyles: {
+                            fillColor: this.colors.light
+                        },
+                        didParseCell: (data) => {
+                            // Colorear estados
+                            if (data.column.index === 6) {
+                                if (data.cell.text[0] === 'DESCUADRE') {
+                                    data.cell.styles.fillColor = [231, 76, 60];
+                                    data.cell.styles.textColor = 255;
+                                } else if (data.cell.text[0] === 'OK') {
+                                    data.cell.styles.fillColor = [39, 174, 96];
+                                    data.cell.styles.textColor = 255;
+                                }
+                            }
+                        }
+                    });
+
+                    this.yPosition = this.doc.lastAutoTable.finalY + 15;
+                }
+
+                // Tabla resumida de productos sin movimiento
+                const inactiveProducts = productData.filter(p => 
+                    parseInt(p[1]) === 0 && parseInt(p[2]) === 0 && parseInt(p[4]) === 0
+                );
+
+                if (inactiveProducts.length > 0) {
+                    this.checkNewPage(20);
+                    this.doc.setFontSize(10);
+                    this.doc.setTextColor(...this.colors.gray);
+                    this.doc.text(`Productos sin movimiento: ${inactiveProducts.length}`, this.margin, this.yPosition);
+                    this.yPosition += 15;
+                }
+            }
+
+            // Tabla de bebidas mejorada
+            addBeveragesTable() {
+                this.addSectionTitle('BEBIDAS GASEOSAS', '');
+                
+                const beverageData = beverages.map(b => {
+                    const remaining = b.initial - b.sold;
+                    const status = remaining >= 0 ? 'OK' : 'DESCUADRE';
+                    return [
+                        b.name,
+                        b.initial.toString(),
+                        b.sold.toString(),
+                        remaining.toString(),
+                        status,
+                        this.truncateText(b.observations || '-', 25)
+                    ];
+                });
+
+                const activeBeverages = beverageData.filter(b => 
+                    parseInt(b[1]) > 0 || parseInt(b[2]) > 0
+                );
+
+                if (activeBeverages.length > 0) {
+                    this.doc.autoTable({
+                        head: [['Bebida', 'Inicial', 'Vendido', 'Restante', 'Estado', 'Observaciones']],
+                        body: activeBeverages,
+                        startY: this.yPosition,
+                        styles: {
+                            fontSize: 9,
+                            cellPadding: 3,
+                            halign: 'center',
+                            valign: 'middle',
+                            lineColor: [200, 200, 200],
+                            lineWidth: 0.1
+                        },
+                        headStyles: {
+                            fillColor: this.colors.primary,
+                            textColor: 255,
+                            fontStyle: 'bold'
+                        },
+                        columnStyles: {
+                            0: { halign: 'left', cellWidth: 45 },
+                            1: { cellWidth: 20 },
+                            2: { cellWidth: 20 },
+                            3: { cellWidth: 20 },
+                            4: { cellWidth: 25 },
+                            5: { halign: 'left', cellWidth: 52 }
+                        },
+                        alternateRowStyles: {
+                            fillColor: this.colors.light
+                        },
+                        didParseCell: (data) => {
+                            if (data.column.index === 4) {
+                                if (data.cell.text[0] === 'DESCUADRE') {
+                                    data.cell.styles.fillColor = [231, 76, 60];
+                                    data.cell.styles.textColor = 255;
+                                } else if (data.cell.text[0] === 'OK') {
+                                    data.cell.styles.fillColor = [39, 174, 96];
+                                    data.cell.styles.textColor = 255;
+                                }
+                            }
+                        }
+                    });
+
+                    this.yPosition = this.doc.lastAutoTable.finalY + 15;
+                }
+
+                const inactiveBeverages = beverageData.filter(b => 
+                    parseInt(b[1]) === 0 && parseInt(b[2]) === 0
+                );
+
+                if (inactiveBeverages.length > 0) {
+                    this.checkNewPage(10);
+                    this.doc.setFontSize(10);
+                    this.doc.setTextColor(...this.colors.gray);
+                    this.doc.text(`Bebidas sin movimiento: ${inactiveBeverages.length}`, this.margin, this.yPosition);
+                    this.yPosition += 15;
+                }
+            }
+
+            // Sección de café mejorada
+            addCoffeeSection() {
+                this.addSectionTitle('CONTROL DE CAFÉ', '');
+                
+                const coffeeObs = document.getElementById('coffeeObs').value || 'Sin observaciones';
+                const coffeeRemaining = coffeeData.fromMK1 - (coffeeData.sold / 1000);
+
+                // Caja informativa del café
+                this.doc.setFillColor(255, 248, 220);
+                this.doc.setDrawColor(...this.colors.warning);
+                this.doc.rect(this.margin, this.yPosition, 182, 25, 'FD');
+
+                this.yPosition += 8;
+                this.doc.setFontSize(11);
+                this.doc.setFont('helvetica', 'bold');
+                this.doc.setTextColor(...this.colors.dark);
+
+                const coffeeInfo = [
+                  `Peso inicial de MK1: ${coffeeData.fromMK1.toFixed(2)} kg`,
+                 `Total vendido: ${coffeeData.sold} g (${(coffeeData.sold / 1000).toFixed(2)} kg)`,
+                 `Debe quedar: ${coffeeRemaining.toFixed(2)} kg`,
+                 `Estado: ${coffeeRemaining >= 0 ? '✓ OK' : '⚠ DESCUADRE'}`
+                ];
+
+                coffeeInfo.forEach((info, index) => {
+                    this.doc.text(info, this.margin + 5, this.yPosition + (index * 4));
+                });
+
+                this.yPosition += 20;
+                
+                if (coffeeObs !== 'Sin observaciones') {
+                    this.doc.setFontSize(9);
+                    this.doc.setFont('helvetica', 'italic');
+                    this.doc.text(`Observaciones: ${coffeeObs}`, this.margin + 5, this.yPosition);
+                    this.yPosition += 8;
+                }
+
+                this.yPosition += 10;
+            }
+
+            // Análisis y alertas
+            addAnalysisSection() {
+                this.checkNewPage(40);
+                this.addSectionTitle('ANÁLISIS Y ALERTAS', '');
+
+                const alerts = [];
+                
+                // Verificar descuadres en productos
+                products.forEach(p => {
+                    const physical = (p.existing + p.production) - p.sold;
+                    if (physical < 0) {
+                        alerts.push(`⚠ PRODUCTO: ${p.name} tiene descuadre de ${Math.abs(physical)} unidades`);
+                    }
+                });
+
+                // Verificar descuadres en bebidas
+                beverages.forEach(b => {
+                    const remaining = b.initial - b.sold;
+                    if (remaining < 0) {
+                        alerts.push(`⚠ BEBIDA: ${b.name} tiene descuadre de ${Math.abs(remaining)} unidades`);
+                    }
+                });
+
+                // Verificar café
+                const coffeeRemaining = coffeeData.fromMK1 - (coffeeData.sold / 1000);
+                if (coffeeRemaining < 0) {
+                    alerts.push(`⚠ CAFÉ: Descuadre de ${Math.abs(coffeeRemaining.toFixed(2))} kg`);
+                }
+
+                if (alerts.length > 0) {
+                    this.doc.setFillColor(254, 242, 242);
+                    this.doc.setDrawColor(...this.colors.danger);
+                    const alertHeight = alerts.length * 5 + 10;
+                    this.doc.rect(this.margin, this.yPosition, 182, alertHeight, 'FD');
+                    
+                    this.yPosition += 6;
+                    this.doc.setFontSize(10);
+                    this.doc.setTextColor(...this.colors.danger);
+                    
+                    alerts.forEach((alert, index) => {
+                        this.doc.text(alert, this.margin + 3, this.yPosition + (index * 5));
+                    });
+                    
+                    this.yPosition += alertHeight;
+                } else {
+                    this.doc.setFillColor(240, 253, 244);
+                    this.doc.setDrawColor(...this.colors.success);
+                    this.doc.rect(this.margin, this.yPosition, 182, 15, 'FD');
+                    
+                    this.yPosition += 10;
+                    this.doc.setFontSize(11);
+                    this.doc.setTextColor(...this.colors.success);
+                    this.doc.text('✓ Todo el inventario está balanceado correctamente', this.margin + 3, this.yPosition);
+                    this.yPosition += 10;
+                }
+            }
+
+            // Pie de página mejorado
+            addFooter() {
+                const pageCount = this.doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    this.doc.setPage(i);
+                    
+                    // Línea decorativa
+                    this.doc.setDrawColor(...this.colors.gray);
+                    this.doc.line(this.margin, 285, 196, 285);
+                    
+                    // Información del pie
+                    this.doc.setFontSize(8);
+                    this.doc.setTextColor(...this.colors.gray);
+                    this.doc.text(`Página ${i} de ${pageCount}`, this.margin, 290);
+                    this.doc.text(`Sistema de Inventario v2.0`, 105, 290, { align: 'center' });
+                    this.doc.text(`${this.today.toLocaleDateString('es-ES')} ${this.today.toLocaleTimeString('es-ES')}`, 196, 290, { align: 'right' });
+                }
+            }
+
+            // Utilidad para truncar texto
+            truncateText(text, maxLength) {
+                return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            }
+
+            // Generar PDF completo
+            generate() {
+                this.addHeader();
+                this.addExecutiveSummary();
+                this.addProductsTable();
+                this.addBeveragesTable();
+                this.addCoffeeSection();
+                this.addAnalysisSection();
+                this.addFooter();
+
+                const fileName = `inventario_detallado_${this.today.toISOString().split('T')[0]}.pdf`;
+                this.doc.save(fileName);
+            }
+        }
+
+        // Función principal de exportación
+        function exportToPDF() {
+            const generator = new PDFGenerator();
+            generator.generate();
+        }
+
+        // Siguiente día
+        function nextDay() {
+            if (confirm('¿Estás seguro de avanzar al siguiente día? Los valores físicos se convertirán en existentes y se reiniciarán los demás campos.')) {
+                // Actualizar productos: el físico se convierte en existente
+                products.forEach(product => {
+                    const physical = (product.existing + product.production) - product.sold;
+                    product.existing = Math.max(0, physical); // No permitir negativos
+                    product.production = 0;
+                    product.sold = 0;
+                    product.observations = "";
+                });
+                
+                // Actualizar bebidas: el restante se convierte en inicial
+                beverages.forEach(beverage => {
+                    const remaining = beverage.initial - beverage.sold;
+                    beverage.initial = Math.max(0, remaining); // No permitir negativos
+                    beverage.sold = 0;
+                    beverage.observations = "";
+                });
+                
+                // Reiniciar café
+                coffeeData = { fromMK1: 0, sold: 0, observations: "" };
+                document.getElementById('coffeeFromMK1').value = '';
+                document.getElementById('coffeeSold').value = '';
+                document.getElementById('coffeeObs').value = '';
+                
+                renderProductTable();
+                renderBeverageTable();
+                calculateCoffee();
+                updateStats();
+                updateDate();
+                
+                alert('¡Día siguiente iniciado! Los valores se han actualizado correctamente.');
+            }
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDate();
+            renderProductTable();
+            renderBeverageTable();
+            calculateCoffee();
+            updateStats();
+        });
+    </script>
+</body>
+</html>
